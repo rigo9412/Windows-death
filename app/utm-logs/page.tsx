@@ -20,26 +20,19 @@ export default function UTMLogs() {
 
   const fetchLogs = useCallback(async () => {
     try {
-      // Obtener logs de la base de datos
       const response = await fetch('/api/utm-logs');
       const data = await response.json();
       
       if (Array.isArray(data)) {
         setLogs(data);
       } else {
-        // Fallback a localStorage si falla la BD
-        const storedLogs = localStorage.getItem('utm_logs');
-        const localData = storedLogs ? JSON.parse(storedLogs) : [];
-        setLogs(localData);
+        setLogs([]);
       }
       
       setLoading(false);
     } catch (error) {
       console.error('Error fetching logs:', error);
-      // Fallback a localStorage
-      const storedLogs = localStorage.getItem('utm_logs');
-      const localData = storedLogs ? JSON.parse(storedLogs) : [];
-      setLogs(localData);
+      setLogs([]);
       setLoading(false);
     }
   }, []);
@@ -85,8 +78,8 @@ export default function UTMLogs() {
 
   const clearLogs = () => {
     if (confirm('¿Estás seguro de que quieres borrar todos los logs?')) {
-      localStorage.removeItem('utm_logs');
-      setLogs([]);
+      // No se puede borrar logs del servidor, solo se pueden ver
+      alert('Los logs se almacenan en el servidor. Contacta al administrador para limpiarlos.');
     }
   };
 
@@ -116,9 +109,8 @@ export default function UTMLogs() {
               <button
                 onClick={clearLogs}
                 className="px-4 py-1 bg-red-900 hover:bg-red-800 border border-red-600 text-red-400 transition-colors"
-                disabled={logs.length === 0}
               >
-                Clear All
+                Info
               </button>
             </div>
           </div>

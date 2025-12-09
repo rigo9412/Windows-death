@@ -1,8 +1,7 @@
-import { list, put } from '@vercel/blob';
+import { put, head } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 
 interface UTMLog {
-  id?: number;
   timestamp: string;
   utm_source?: string;
   utm_medium?: string;
@@ -17,15 +16,15 @@ const BLOB_FILENAME = 'utm-logs.json';
 
 async function getLogs(): Promise<UTMLog[]> {
   try {
-    const { blobs } = await list({ prefix: BLOB_FILENAME });
-    
-    if (blobs.length > 0) {
-      const response = await fetch(blobs[0].url);
+    // Verificar si el archivo existe
+    const metadata = await head(BLOB_FILENAME);
+    if (metadata) {
+      const response = await fetch(metadata.url);
       const logs = await response.json();
-      return logs;
+      return Array.isArray(logs) ? logs : [];
     }
   } catch (error) {
-    console.error('Error reading logs:', error);
+    console.log('Blob file not found yet, starting with empty array');
   }
   return [];
 }
@@ -35,7 +34,6 @@ async function saveLogs(logs: UTMLog[]) {
     await put(BLOB_FILENAME, JSON.stringify(logs), { 
       access: 'public',
       contentType: 'application/json',
-      allowOverwrite: true,
     });
   } catch (error) {
     console.error('Error saving logs:', error);
@@ -50,11 +48,11 @@ export async function POST(request: Request) {
 
     const log: UTMLog = {
       timestamp: new Date().toISOString(),
-      utm_source,
-      utm_medium,
-      utm_campaign,
-      utm_content,
-      utm_term,
+      utm_source: utm_source || undefined,
+      utm_medium: utm_medium || undefined,
+      utm_campaign: utm_campaign || undefined,
+      utm_content: utm_content || undefined,
+      utm_term: utm_term || undefined,
       url,
       user_agent: request.headers.get('user-agent') || 'Unknown',
     };
@@ -73,7 +71,7 @@ export async function POST(request: Request) {
     // Guardar en blob
     await saveLogs(logs);
 
-    return NextResponse.json({ success: true, log });
+    return NextResponse.json({ success: true, log, totalLogs: logs.length });
   } catch (error) {
     console.error('Error saving log:', error);
     return NextResponse.json({ 
