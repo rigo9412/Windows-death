@@ -92,14 +92,14 @@ export default function UTMLogs() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 text-green-400 font-mono p-8 flex items-center justify-center">
+      <div className="min-h-screen bg-blue-500 text-white font-mono p-8 flex items-center justify-center">
         <div className="text-xl">Loading logs...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-green-400 font-mono p-8">
+    <div className="min-h-screen bg-blue-500 text-white font-mono p-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl mb-2">UTM TRACKING LOGS</h1>
@@ -108,7 +108,7 @@ export default function UTMLogs() {
             <div className="space-x-2">
               <button
                 onClick={exportLogs}
-                className="px-4 py-1 bg-green-900 hover:bg-green-800 border border-green-600 text-green-400 transition-colors"
+                className="px-4 py-1 bg-green-900 hover:bg-green-800 border border-green-600 text-white transition-colors"
                 disabled={logs.length === 0}
               >
                 Export JSON
@@ -127,7 +127,7 @@ export default function UTMLogs() {
             placeholder="Filter by source, medium, campaign, or URL..."
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="w-full bg-gray-900 border border-green-800 px-4 py-2 text-green-400 placeholder-green-800 focus:outline-none focus:border-green-600"
+            className="w-full bg-gray-900 border border-green-800 px-4 py-2 text-white placeholder-green-800 focus:outline-none focus:border-green-600"
           />
         </div>
 
