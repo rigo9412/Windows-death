@@ -1,7 +1,8 @@
-import { put, head, del } from '@vercel/blob';
+import { sql } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
 
 interface UTMLog {
+  id?: number;
   timestamp: string;
   utm_source?: string;
   utm_medium?: string;
@@ -12,74 +13,23 @@ interface UTMLog {
   user_agent: string;
 }
 
-const BLOB_FILENAME = 'utm-logs.json';
-
-async function getLogs(): Promise<UTMLog[]> {
-  try {
-    // Verificar si el archivo existe
-    const metadata = await head(BLOB_FILENAME);
-    if (metadata) {
-      const response = await fetch(metadata.url);
-      const logs = await response.json();
-      return Array.isArray(logs) ? logs : [];
-    }
-  } catch (error) {
-    console.log('Blob file not found yet, starting with empty array');
-  }
-  return [];
-}
-
-async function saveLogs(logs: UTMLog[]) {
-  try {
-    // Eliminar el archivo anterior si existe
-    try {
-      await del(BLOB_FILENAME);
-    } catch (deleteError) {
-      // Ignorar si no existe
-    }
-    
-    // Guardar el nuevo archivo
-    await put(BLOB_FILENAME, JSON.stringify(logs), { 
-      access: 'public',
-      contentType: 'application/json',
-    });
-  } catch (error) {
-    console.error('Error saving logs:', error);
-    throw error;
-  }
-}
-
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { utm_source, utm_medium, utm_campaign, utm_content, utm_term, url } = body;
 
-    const log: UTMLog = {
-      timestamp: new Date().toISOString(),
-      utm_source: utm_source || undefined,
-      utm_medium: utm_medium || undefined,
-      utm_campaign: utm_campaign || undefined,
-      utm_content: utm_content || undefined,
-      utm_term: utm_term || undefined,
-      url,
-      user_agent: request.headers.get('user-agent') || 'Unknown',
-    };
+    // Insertar en la base de datos
+    await sql`
+      INSERT INTO utm_logs (
+        utm_source, utm_medium, utm_campaign, utm_content, utm_term, url, user_agent
+      ) VALUES (
+        ${utm_source || null}, ${utm_medium || null}, ${utm_campaign || null},
+        ${utm_content || null}, ${utm_term || null}, ${url},
+        ${request.headers.get('user-agent') || 'Unknown'}
+      )
+    `;
 
-    // Obtener logs existentes
-    const logs = await getLogs();
-    
-    // Agregar nuevo log al inicio
-    logs.unshift(log);
-    
-    // Mantener solo los últimos 500 registros
-    if (logs.length > 500) {
-      logs.splice(500);
-    }
-
-    // Guardar en blob
-    await saveLogs(logs);
-
-    return NextResponse.json({ success: true, log, totalLogs: logs.length });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error saving log:', error);
     return NextResponse.json({ 
@@ -91,7 +41,24 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
-    const logs = await getLogs();
+    // Obtener los últimos 100 logs
+    const result = await sql`
+      SELECT * FROM utm_logs 
+      ORDER BY created_at DESC 
+      LIMIT 100
+    `;
+
+    const logs = result.rows.map(row => ({
+      timestamp: row.created_at,
+      utm_source: row.utm_source,
+      utm_medium: row.utm_medium,
+      utm_campaign: row.utm_campaign,
+      utm_content: row.utm_content,
+      utm_term: row.utm_term,
+      url: row.url,
+      user_agent: row.user_agent,
+    }));
+
     return NextResponse.json(logs);
   } catch (error) {
     console.error('Error fetching logs:', error);

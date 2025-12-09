@@ -97,7 +97,7 @@ export default function UTMLogs() {
         <div className="mb-8">
           <h1 className="text-3xl mb-2">UTM TRACKING LOGS</h1>
           <div className="text-sm text-blue-600 mb-4 flex justify-between items-center">
-            <span>Total entries: {logs.length} | Auto-refresh: 5s | Stored in Vercel Blob</span>
+            <span>Total entries: {logs.length} | Auto-refresh: 5s | Database: Vercel Postgres</span>
             <div className="space-x-2">
               <button
                 onClick={exportLogs}
