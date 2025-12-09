@@ -99,7 +99,7 @@ export default function UTMLogs() {
   }
 
   return (
-    <div className="min-h-screen bg-blue-500 text-white font-mono p-8">
+    <div className="min-h-screen bg-blue-950 text-white font-mono p-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl mb-2">UTM TRACKING LOGS</h1>
