@@ -1,4 +1,4 @@
-import { put, head } from '@vercel/blob';
+import { put, head, del } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 
 interface UTMLog {
@@ -31,10 +31,17 @@ async function getLogs(): Promise<UTMLog[]> {
 
 async function saveLogs(logs: UTMLog[]) {
   try {
+    // Eliminar el archivo anterior si existe
+    try {
+      await del(BLOB_FILENAME);
+    } catch (deleteError) {
+      // Ignorar si no existe
+    }
+    
+    // Guardar el nuevo archivo
     await put(BLOB_FILENAME, JSON.stringify(logs), { 
       access: 'public',
       contentType: 'application/json',
-      allowOverwrite: true
     });
   } catch (error) {
     console.error('Error saving logs:', error);
