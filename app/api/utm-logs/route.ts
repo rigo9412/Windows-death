@@ -34,6 +34,7 @@ async function saveLogs(logs: UTMLog[]) {
     await put(BLOB_FILENAME, JSON.stringify(logs), { 
       access: 'public',
       contentType: 'application/json',
+      allowOverwrite: true
     });
   } catch (error) {
     console.error('Error saving logs:', error);
