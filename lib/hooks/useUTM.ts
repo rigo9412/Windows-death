@@ -37,6 +37,18 @@ export function useUTM() {
       
       // Guardar en localStorage para análisis posteriores
       localStorage.setItem('utm_params', JSON.stringify(utm));
+      
+      // Guardar en archivo local vía API
+      fetch('/api/utm-logs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...utm,
+          url: window.location.href,
+        }),
+      }).catch(error => console.error('Error saving UTM log:', error));
     }
   }, []);
 }
