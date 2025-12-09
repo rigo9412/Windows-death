@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { UTMTracker } from "@/components/UTMTracker";
-import type { CSSProperties } from "react";
 
-// @ts-expect-error - Next.js CSS import
+ 
 import "./globals.css";
 
 const geistSans = Geist({
