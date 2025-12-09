@@ -1,5 +1,11 @@
 import { useEffect } from 'react';
 
+declare global {
+  interface Window {
+    gtag?: (command: string, action: string, options?: Record<string, string>) => void;
+  }
+}
+
 interface UTMParams {
   utm_source?: string;
   utm_medium?: string;
@@ -26,7 +32,7 @@ export function useUTM() {
     // Si hay parámetros UTM, enviarlos a Google Analytics
     if (Object.keys(utm).length > 0) {
       if (typeof window !== 'undefined' && window.gtag) {
-        window.gtag('event', 'utm_campaign_detected', utm);
+        window.gtag('event', 'utm_campaign_detected', utm as Record<string, string>);
       }
       
       // Guardar en localStorage para análisis posteriores
