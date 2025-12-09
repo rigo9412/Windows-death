@@ -20,12 +20,26 @@ export default function UTMLogs() {
 
   const fetchLogs = useCallback(async () => {
     try {
+      // Obtener logs de la base de datos
       const response = await fetch('/api/utm-logs');
       const data = await response.json();
-      setLogs(data);
+      
+      if (Array.isArray(data)) {
+        setLogs(data);
+      } else {
+        // Fallback a localStorage si falla la BD
+        const storedLogs = localStorage.getItem('utm_logs');
+        const localData = storedLogs ? JSON.parse(storedLogs) : [];
+        setLogs(localData);
+      }
+      
       setLoading(false);
     } catch (error) {
       console.error('Error fetching logs:', error);
+      // Fallback a localStorage
+      const storedLogs = localStorage.getItem('utm_logs');
+      const localData = storedLogs ? JSON.parse(storedLogs) : [];
+      setLogs(localData);
       setLoading(false);
     }
   }, []);
@@ -58,6 +72,24 @@ export default function UTMLogs() {
     });
   };
 
+  const exportLogs = () => {
+    const dataStr = JSON.stringify(logs, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `utm-logs-${new Date().toISOString()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const clearLogs = () => {
+    if (confirm('¿Estás seguro de que quieres borrar todos los logs?')) {
+      localStorage.removeItem('utm_logs');
+      setLogs([]);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-950 text-green-400 font-mono p-8 flex items-center justify-center">
@@ -71,8 +103,24 @@ export default function UTMLogs() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl mb-2">UTM TRACKING LOGS</h1>
-          <div className="text-sm text-green-600 mb-4">
-            Total entries: {logs.length} | Auto-refresh: 5s
+          <div className="text-sm text-green-600 mb-4 flex justify-between items-center">
+            <span>Total entries: {logs.length} | Auto-refresh: 5s | Stored in Vercel Blob</span>
+            <div className="space-x-2">
+              <button
+                onClick={exportLogs}
+                className="px-4 py-1 bg-green-900 hover:bg-green-800 border border-green-600 text-green-400 transition-colors"
+                disabled={logs.length === 0}
+              >
+                Export JSON
+              </button>
+              <button
+                onClick={clearLogs}
+                className="px-4 py-1 bg-red-900 hover:bg-red-800 border border-red-600 text-red-400 transition-colors"
+                disabled={logs.length === 0}
+              >
+                Clear All
+              </button>
+            </div>
           </div>
           <input
             type="text"

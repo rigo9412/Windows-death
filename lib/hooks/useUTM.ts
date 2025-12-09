@@ -35,10 +35,33 @@ export function useUTM() {
         window.gtag('event', 'utm_campaign_detected', utm as Record<string, string>);
       }
       
-      // Guardar en localStorage para análisis posteriores
+      // Guardar en localStorage con timestamp
+      const log = {
+        ...utm,
+        timestamp: new Date().toISOString(),
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+      };
+      
+      // Obtener logs existentes
+      const existingLogs = localStorage.getItem('utm_logs');
+      const logs = existingLogs ? JSON.parse(existingLogs) : [];
+      
+      // Agregar nuevo log al inicio
+      logs.unshift(log);
+      
+      // Mantener solo los últimos 100 registros
+      if (logs.length > 100) {
+        logs.splice(100);
+      }
+      
+      // Guardar logs actualizados
+      localStorage.setItem('utm_logs', JSON.stringify(logs));
+      
+      // También guardar el último UTM
       localStorage.setItem('utm_params', JSON.stringify(utm));
       
-      // Guardar en archivo local vía API
+      // Guardar en la base de datos
       fetch('/api/utm-logs', {
         method: 'POST',
         headers: {
